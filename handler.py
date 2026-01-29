@@ -26,7 +26,7 @@ def load_assets():
             MODEL_ID,
             device_map="cuda:0",
             dtype=torch.bfloat16,
-            attn_implementation="flash_attention_2"
+            attn_implementation="sdpa"
         )
         model.model = torch.compile(model.model, mode="reduce-overhead")
 

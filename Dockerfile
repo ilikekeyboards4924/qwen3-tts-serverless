@@ -31,11 +31,11 @@ RUN pip install --no-cache-dir \
     hf_transfer
 
 # Add these lines BEFORE the pip install flash-attn command
-ENV MAX_JOBS=1
-ENV NVCC_THREADS=1
+# ENV MAX_JOBS=1
+# ENV NVCC_THREADS=1
 
-# Install Flash Attention 2 (Optimized for RTX 4090/Ada cards)
-RUN pip install -U flash-attn --no-build-isolation
+# # Install Flash Attention 2 (Optimized for RTX 4090/Ada cards)
+# RUN pip install -U flash-attn --no-build-isolation
 
 # Clone your specific implementation
 RUN git clone https://github.com/ilikekeyboards4924/qwen3_tts.git /workspace/qwen3_tts
