@@ -14,4 +14,3 @@ hf_transfer
 
 # Deployment & Utilities
 runpod
-struct
