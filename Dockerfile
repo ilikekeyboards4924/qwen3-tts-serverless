@@ -1,6 +1,7 @@
 # Use a base image with PyTorch 2.8.0 and CUDA 12.8
 # FROM pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime
-FROM pytorch/pytorch:2.8.0-cuda12.4-cudnn9-runtime
+# FROM pytorch/pytorch:2.8.0-cuda12.4-cudnn9-runtime
+FROM pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
 
 # Set environment variables for non-interactive installs and HF speed
 ENV DEBIAN_FRONTEND=noninteractive
