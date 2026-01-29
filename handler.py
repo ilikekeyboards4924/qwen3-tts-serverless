@@ -1,79 +1,56 @@
 import torch
 import soundfile as sf
-import os
 import base64
 import runpod
+import os
+from datetime import datetime
 from qwen_tts import Qwen3TTSModel
 from pathlib import Path
 
-# --- CONFIGURATION ---
+# --- MINIMAL CONFIG ---
 MODEL_ID = "Qwen/Qwen3-TTS-12Hz-1.7B-Base"
-EMBED_DIR = "/workspace/qwen3_tts/embedding"
-OUT_DIR = "/tmp"  # Use /tmp for serverless ephemeral storage
-
-# Global variables to store loaded assets
+# Ensure this matches your actual folder on RunPod
+EMBED_DIR = "/workspace/qwen3_tts/embedding" 
 model = None
-voice_cache = {}
 
 def load_assets():
-    """Initializes the model and voice cache once per worker."""
-    global model, voice_cache
-    
+    global model
     if model is None:
-        print("Loading model into VRAM...")
-        torch.set_float32_matmul_precision('high')
         model = Qwen3TTSModel.from_pretrained(
             MODEL_ID,
             device_map="cuda:0",
-            dtype=torch.bfloat16,
+            torch_dtype=torch.bfloat16,
             attn_implementation="sdpa"
         )
-        model.model = torch.compile(model.model, mode="reduce-overhead")
-
-    if not voice_cache:
-        print("Caching voice embeddings...")
-        for pt_file in Path(EMBED_DIR).glob("*.pt"):
-            voice_cache[pt_file.stem] = torch.load(
-                pt_file, 
-                map_location="cuda:0", 
-                weights_only=False
-            )
-        print(f"System Ready. Cached {len(voice_cache)} voices.")
 
 def handler(job):
-    """
-    Standard RunPod handler. 
-    Expects input: {"character": "voice_name", "prompt": "text to say"}
-    """
     load_assets()
     
-    job_input = job['input']
-    name = job_input.get("character")
-    text = job_input.get("prompt")
+    # 1. Get the current time as a readable string
+    current_time = datetime.now().strftime("%I:%M %p")
+    text_to_say = f"The current time is {current_time}."
 
-    if name not in voice_cache:
-        return {"error": f"Voice '{name}' not found in cache."}
+    # 2. Hardcode a voice name from your embedding folder
+    # Replace 'glados' with whatever .pt file you actually have
+    voice_name = "brantley" 
+    voice_path = Path(EMBED_DIR) / f"{voice_name}.pt"
+    
+    voice_embedding = torch.load(voice_path, map_location="cuda:0", weights_only=False)
 
-    # Generate audio
+    # 3. Generate Audio
     wavs, sr = model.generate_voice_clone(
-        text=text,
+        text=text_to_say,
         language="English",
-        voice_clone_prompt=voice_cache[name]
+        voice_clone_prompt=voice_embedding
     )
 
-    # Save to a temporary file
-    temp_filename = f"{OUT_DIR}/output.wav"
-    sf.write(temp_filename, wavs[0], sr)
+    # 4. Convert to Base64
+    temp_file = "/tmp/out.wav"
+    sf.write(temp_file, wavs[0], sr)
+    
+    with open(temp_file, "rb") as f:
+        audio_b64 = base64.b64encode(f.read()).decode("utf-8")
 
-    # Convert audio to base64 for the JSON response
-    with open(temp_filename, "rb") as audio_file:
-        encoded_string = base64.b64encode(audio_file.read()).decode("utf-8")
+    return {"audio_base64": audio_b64}
 
-    return {
-        "audio_base64": encoded_string,
-        "format": "wav",
-        "sampling_rate": sr
-    }
-
-# Start the serverless worker
 runpod.serverless.start({"handler": handler})

@@ -1,16 +1,10 @@
 # Core ML Frameworks
-torch
-torchaudio
+torch 
+torchaudio 
+soundfile 
+librosa 
 accelerate
-transformers
 
-# Audio Processing
-soundfile
-librosa
-
-# Qwen3-TTS Specific
-qwen3-tts
 hf_transfer
 
-# Deployment & Utilities
 runpod
