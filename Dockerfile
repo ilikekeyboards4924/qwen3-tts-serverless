@@ -30,6 +30,10 @@ RUN pip install --no-cache-dir \
     runpod \
     hf_transfer
 
+# Add these lines BEFORE the pip install flash-attn command
+ENV MAX_JOBS=1
+ENV NVCC_THREADS=1
+
 # Install Flash Attention 2 (Optimized for RTX 4090/Ada cards)
 RUN pip install -U flash-attn --no-build-isolation
 
