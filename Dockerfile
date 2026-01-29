@@ -1,46 +1,14 @@
-# Use a base image with PyTorch 2.8.0 and CUDA 12.8
-# FROM pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime
-# FROM pytorch/pytorch:2.8.0-cuda12.4-cudnn9-runtime
-FROM pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
+# Use a lightweight Python base image
+FROM python:3.11-slim
 
-# Set environment variables for non-interactive installs and HF speed
-ENV DEBIAN_FRONTEND=noninteractive
-ENV HF_HUB_ENABLE_HF_TRANSFER=1
-ENV TRANSFORMERS_NO_FLASH_ATTN=1
+# Set the working directory
+WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    sox \
-    git \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+# Install only the necessary RunPod library
+RUN pip install --no-cache-dir runpod
 
-# Set working directory
-WORKDIR /workspace
+# Copy your handler.py into the container
+COPY handler.py .
 
-# Install Qwen3-TTS and its dependencies
-RUN git clone https://github.com/QwenLM/Qwen3-TTS.git && \
-    cd Qwen3-TTS && \
-    pip install -e .
-
-# Install additional Python requirements from your script
-RUN pip install --no-cache-dir \
-    torch \
-    torchaudio \
-    soundfile \
-    librosa \
-    accelerate \
-    runpod \
-    hf_transfer
-
-
-RUN git clone https://github.com/ilikekeyboards4924/qwen3_tts.git /workspace/qwen3_tts
-RUN mkdir -p /workspace/voice_clone/embedding /workspace/voice_clone/output
-
-# Set the working directory to your app
-WORKDIR /workspace/qwen3_tts
-
-RUN pip uninstall -y flash-attn
-
-# Run your main script (or handler.py if switching to Serverless)
-CMD ["python", "-u", "main.py"]
+# Run the handler with unbuffered output (so logs appear instantly)
+CMD ["python", "-u", "handler.py"]
