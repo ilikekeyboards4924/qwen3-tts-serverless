@@ -27,7 +27,6 @@ RUN pip install --no-cache-dir \
     soundfile \
     librosa \
     accelerate \
-    struct \
     runpod \
     hf_transfer
 
