@@ -1,5 +1,10 @@
 import runpod
 
+model = None # if the model = None, then load it into vram
+
+def load_assets():
+    pass
+
 def handler(job):
     job_input = job['input']
     voice = job_input.get("voice")
