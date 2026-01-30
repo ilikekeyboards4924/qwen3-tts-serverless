@@ -1,14 +1,13 @@
 import runpod
 
 def handler(job):
-    """
-    Minimal handler that ignores specific inputs 
-    and returns a success message.
-    """
-    # job['input'] contains your request data, 
-    # but we are purposefully ignoring it.
-    
-    return {"status": "ok", "message": "Request received and processed."}
+    job_input = job['input']
+    voice = job_input.get("voice")
+    text = job_input.get("prompt")    
 
-# Start the serverless worker
+    return {
+        "status": "ok", 
+        "message": f"received request to use the voice ({voice}) and prompt ({text})"
+    }
+
 runpod.serverless.start({"handler": handler})
